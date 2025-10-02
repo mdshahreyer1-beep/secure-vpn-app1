@@ -1,0 +1,33 @@
+{
+"name": "SecureVPN - Fast & Secure VPN",
+"short_name": "SecureVPN",
+"description": "Fast & Secure VPN Service with advanced protocol settings",
+"start_url": "/secure-vpn-app/",
+"display": "standalone",
+"background_color": "#181818",
+"theme_color": "#5D5CDE",
+"orientation": "portrait-primary",
+"scope": "/secure-vpn-app/",
+"icons": [
+{
+"src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTYgMjU2Ij48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImEiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM1RDVDREUiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwMEM5RkYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSIxMjgiIGN5PSIxMjgiIHI9IjEwMCIgZmlsbD0idXJsKCNhKSIvPjxwYXRoIGQ9Ik0xMjggNjBjMzcuNTUgMCA2OCAzMC40NSA2OCA2OHMtMzAuNDUgNjgtNjggNjgtNjgtMzAuNDUtNjgtNjggMzAuNDUtNjggNjgtNjh6bTAgMjBjLTI2LjUxIDAtNDggMjEuNDktNDggNDhzMjEuNDkgNDggNDggNDggNDgtMjEuNDkgNDgtNDgtMjEuNDktNDgtNDgtNDh6IiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjkiLz48Y2lyY2xlIGN4PSIxMjgiIGN5PSIxMjgiIHI9IjE2IiBmaWxsPSIjZmZmZmZmIi8+PC9zdmc+",
+"sizes": "192x192",
+"type": "image/svg+xml",
+"purpose": "any maskable"
+},
+{
+"src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTYgMjU2Ij48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImEiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM1RDVDREUiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwMEM5RkYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSIxMjgiIGN5PSIxMjgiIHI9IjEwMCIgZmlsbD0idXJsKCNhKSIvPjxwYXRoIGQ9Ik0xMjggNjBjMzcuNTUgMCA2OCAzMC40NSA2OCA2OHMtMzAuNDUgNjgtNjggNjgtNjgtMzAuNDUtNjgtNjggMzAuNDUtNjggNjgtNjh6bTAgMjBjLTI2LjUxIDAtNDggMjEuNDktNDggNDhzMjEuNDkgNDggNDggNDggNDgtMjEuNDkgNDgtNDgtMjEuNDktNDgtNDgtNDh6IiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjkiLz48Y2lyY2xlIGN4PSIxMjgiIGN5PSIxMjgiIHI9IjE2IiBmaWxsPSIjZmZmZmZmIi8+PC9zdmc+",
+"sizes": "512x512",
+"type": "image/svg+xml",
+"purpose": "any maskable"
+}
+],
+"categories": ["productivity", "utilities"],
+"screenshots": [
+{
+"src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjU2OCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNUQ1Q0RFIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIyNCIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPlNlY3VyZVZQTjwvdGV4dD48L3N2Zz4=",
+"sizes": "320x568",
+"type": "image/svg+xml"
+}
+]
+}
