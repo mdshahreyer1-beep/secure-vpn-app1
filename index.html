@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SecureVPN - Fast & Secure VPN</title>
+
+<!-- PWA Meta Tags -->
+<meta name="description" content="Fast & Secure VPN Service">
+<meta name="theme-color" content="#5D5CDE">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SecureVPN">
+
+<!-- Manifest -->
+<link rel="manifest" href="manifest.json">
+
+<!-- Icons -->
+<link rel="apple-touch-icon" sizes="192x192" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTYgMjU2Ij48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImEiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM1RDVDREUiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwMEM5RkYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSIxMjgiIGN5PSIxMjgiIHI9IjEwMCIgZmlsbD0idXJsKCNhKSIvPjxwYXRoIGQ9Ik0xMjggNjBjMzcuNTUgMCA2OCAzMC40NSA2OCA2OHMtMzAuNDUgNjgtNjggNjgtNjgtMzAuNDUtNjgtNjggMzAuNDUtNjggNjgtNjh6bTAgMjBjLTI2LjUxIDAtNDggMjEuNDktNDggNDhzMjEuNDkgNDggNDggNDggNDgtMjEuNDkgNDgtNDgtMjEuNDktNDgtNDgtNDh6IiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjkiLz48Y2lyY2xlIGN4PSIxMjgiIGN5PSIxMjgiIHI9IjE2IiBmaWxsPSIjZmZmZmZmIi8+PC9zdmc+">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+theme: {
+extend: {
+colors: {
+primary: '#5D5CDE',
+secondary: '#00C9FF',
+success: '#00FF87',
+danger: '#FF3B3B',
+warning: '#FFD93D',
+dark: '#181818',
+'gray-850': '#1f1f1f',
+'gray-750': '#2a2a2a'
+},
+animation: {
+'pulse-slow': 'pulse 3s linear infinite',
+'spin-slow': 'spin 8s linear infinite',
+'bounce-slow': 'bounce 2s infinite'
+}
+}
+},
+darkMode: 'class'
+}
+</script>
+<style>
+.connection-glow {
+box-shadow: 0 0 20px rgba(93, 92, 222, 0.5);
+}
+.connected-glow {
+box-shadow: 0 0 30px rgba(0, 255, 135, 0.6);
+}
+.gradient-bg {
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+.server-card {
+transition: all 0.3s ease;
+}
+.server-card:hover {
+transform: translateY(-2px);
+box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+@keyframes ripple {
+0% { transform: scale(1); opacity: 1; }
+100% { transform: scale(2.5); opacity: 0; }
+}
+.ripple {
+animation: ripple 1.5s linear infinite;
+}
+</style>
+</head>
+<body class="bg-white dark:bg-dark text-gray-900 dark:text-white transition-colors duration-300">
+<!-- Loading Screen -->
+<div id="loadingScreen" class="fixed inset-0 bg-primary flex items-center justify-center z-50">
+<div class="text-center">
+<div class="w-16 h-16 mx-auto mb-4 relative">
+<div class="absolute inset-0 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+<div class="absolute inset-2 border-2 border-white border-b-transparent rounded-full animate-spin animate-reverse"></div>
+</div>
+<h1 class="text-2xl font-bold text-white mb-2">SecureVPN</h1>
+<p class="text-white/80">Loading...</p>
+</div>
+</div>
+
+<!-- App Container -->
+<div id="app" class="min-h-screen flex flex-col max-w-md mx-auto shadow-xl" style="display: none;">
+<!-- Header -->
+<header class="bg-primary text-white p-4 shadow-lg">
+<div class="flex items-center justify-between">
+<h1 class="text-xl font-bold">SecureVPN</h1>
+<div class="flex items-center space-x-3">
+<div class="relative">
+<div id="connectionStatus" class="w-3 h-3 rounded-full bg-danger"></div>
+<div id="connectionRipple" class="absolute inset-0 w-3 h-3 rounded-full bg-danger opacity-75 ripple" style="display: none;"></div>
+</div>
+<button id="settingsBtn" class="p-2 hover:bg-white/10 rounded-lg transition-colors">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+</svg>
+</button>
+</div>
+</div>
+</header>
+
+<!-- Main Content -->
+<main class="flex-1 overflow-hidden">
+<!-- Home Tab -->
+<div id="homeTab" class="h-full p-6">
+<!-- Connection Status -->
+<div class="text-center mb-8">
+<div id="connectionButton" class="relative w-32 h-32 mx-auto mb-4 cursor-pointer">
+<div class="absolute inset-0 rounded-full border-4 border-gray-300 dark:border-gray-600"></div>
+<div id="connectionProgress" class="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin" style="display: none;"></div>
+<div class="absolute inset-4 rounded-full bg-primary flex items-center justify-center connection-glow">
+<svg id="powerIcon" class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+<path d="M13 3v6h-2V3h2zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z"/>
+</svg>
+</div>
+</div>
+<h2 id="connectionStatusText" class="text-xl font-semibold mb-2">Disconnected</h2>
+<p id="connectionSubtext" class="text-gray-600 dark:text-gray-400">Tap to connect</p>
+</div>
+
+<!-- Current Server -->
+<div class="bg-gray-50 dark:bg-gray-850 rounded-xl p-4 mb-6">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-3">
+<div id="currentServerFlag" class="w-8 h-8 rounded-full bg-gradient-to-br from-red-500 to-blue-500 flex items-center justify-center text-white font-bold text-sm">US</div>
+<div>
+<h3 id="currentServerName" class="font-medium">United States</h3>
+<p id="currentServerPing" class="text-sm text-gray-600 dark:text-gray-400">25ms</p>
+</div>
+</div>
+<button id="changeServerBtn" class="text-primary hover:text-primary/80 transition-colors">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+</svg>
+</button>
+</div>
+</div>
+
+<!-- Quick Stats -->
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="bg-gray-50 dark:bg-gray-850 rounded-xl p-4 text-center">
+<div class="text-2xl font-bold text-primary mb-1" id="downloadSpeed">0 MB/s</div>
+<div class="text-sm text-gray-600 dark:text-gray-400">Download</div>
+</div>
+<div class="bg-gray-50 dark:bg-gray-850 rounded-xl p-4 text-center">
+<div class="text-2xl font-bold text-secondary mb-1" id="uploadSpeed">0 MB/s</div>
+<div class="text-sm text-gray-600 dark:text-gray-400">Upload</div>
+</div>
+</div>
+
+<!-- Features -->
+<div class="space-y-3">
+<div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-850 rounded-lg">
+<span class="font-medium">Kill Switch</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input type="checkbox" class="sr-only peer" id="killSwitch">
+<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-850 rounded-lg">
+<span class="font-medium">Auto Connect</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input type="checkbox" class="sr-only peer" id="autoConnect" checked>
+<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</div>
+
+<!-- Servers Tab -->
+<div id="serversTab" class="h-full" style="display: none;">
+<div class="p-4">
+<!-- Search -->
+<div class="relative mb-4">
+<input type="text" id="serverSearch" placeholder="Search servers..."
+class="w-full pl-10 pr-4 py-3 text-base bg-gray-50 dark:bg-gray-850 border-0 rounded-xl focus:ring-2 focus:ring-primary focus:outline-none transition-all">
+<svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+</svg>
+</div>
+
+<!-- Server Categories -->
+<div class="flex space-x-2 mb-4 overflow-x-auto">
+<button class="category-btn active px-4 py-2 rounded-full bg-primary text-white text-sm whitespace-nowrap" data-category="all">All Servers</button>
+<button class="category-btn px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-750 text-gray-700 dark:text-gray-300 text-sm whitespace-nowrap" data-category="premium">Premium</button>
+<button class="category-btn px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-750 text-gray-700 dark:text-gray-300 text-sm whitespace-nowrap" data-category="streaming">Streaming</button>
+<button class="category-btn px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-750 text-gray-700 dark:text-gray-300 text-sm whitespace-nowrap" data-category="gaming">Gaming</button>
+</div>
+
+<!-- Servers List -->
+<div id="serversList" class="space-y-3 max-h-96 overflow-y-auto">
+<!-- Server items will be populated by JavaScript -->
+</div>
+</div>
+</div>
+
+<!-- Statistics Tab -->
+<div id="statsTab" class="h-full p-6" style="display: none;">
+<h2 class="text-2xl font-bold mb-6">Statistics</h2>
+
+<!-- Usage Overview -->
+<div class="bg-gradient-to-r from-primary to-secondary rounded-xl p-6 text-white mb-6">
+<h3 class="text-lg font-semibold mb-4">Today's Usage</h3>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<div class="text-2xl font-bold" id="todayData">2.4 GB</div>
+<div class="text-white/80 text-sm">Data Used</div>
+</div>
+<div>
+<div class="text-2xl font-bold" id="todayTime">4h 23m</div>
+<div class="text-white/80 text-sm">Connected</div>
+</div>
+</div>
+</div>
+
+<!-- Detailed Stats -->
+<div class="space-y-4">
+<div class="bg-gray-50 dark:bg-gray-850 rounded-xl p-4">
+<div class="flex justify-between items-center mb-2">
+<span class="font-medium">This Week</span>
+<span class="text-primary font-semibold">15.7 GB</span>
+</div>
+<div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+<div class="bg-primary h-2 rounded-full" style="width: 65%"></div>
+</div>
+</div>
+
+<div class="bg-gray-50 dark:bg-gray-850 rounded-xl p-4">
+<div class="flex justify-between items-center mb-2">
+<span class="font-medium">This Month</span>
+<span class="text-secondary font-semibold">42.1 GB</span>
+</div>
+<div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+<div class="bg-secondary h-2 rounded-full" style="width: 35%"></div>
+</div>
+</div>
+
+<div class="bg-gray-50 dark:bg-gray-850 rounded-xl p-4">
+<h4 class="font-semibold mb-3">Connection History</h4>
+<div class="space-y-3">
+<div class="flex justify-between text-sm">
+<span>United States - New York</span>
+<span class="text-gray-600 dark:text-gray-400">2h 15m</span>
+</div>
+<div class="flex justify-between text-sm">
+<span>United Kingdom - London</span>
+<span class="text-gray-600 dark:text-gray-400">1h 42m</span>
+</div>
+<div class="flex justify-between text-sm">
+<span>Germany - Frankfurt</span>
+<span class="text-gray-600 dark:text-gray-400">45m</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Settings Tab -->
+<div id="settingsTab" class="h-full" style="display: none;">
+<div class="p-6">
+<h2 class="text-2xl font-bold mb-6">Settings</h2>
+
+<!-- Protocol Selection -->
+<div class="mb-6">
+<h3 class="text-lg font-semibold mb-3">VPN Protocol</h3>
+<div class="space-y-2">
+<label class="flex items-center p-3 bg-gray-50 dark:bg-gray-850 rounded-lg cursor-pointer">
+<input type="radio" name="protocol" value="auto" checked class="mr-3 text-primary">
+<div>
+<div class="font-medium">Automatic</div>
+<div class="text-sm text-gray-600 dark:text-gray-400">Best performance</div>
+</div>
+</label>
+<label class="flex items-center p-3 bg-gray-50 dark:bg-gray-850 rounded-lg cursor-pointer">
+<input type="radio" name="protocol" value="wireguard" class="mr-3 text-primary">
+<div>
+<div class="font-medium">WireGuard</div>
+<div class="text-sm text-gray-600 dark:text-gray-400">Fast and secure</div>
+</div>
+</label>
+<label class="flex items-center p-3 bg-gray-50 dark:bg-gray-850 rounded-lg cursor-pointer">
+<input type="radio" name="protocol" value="openvpn" class="mr-3 text-primary">
+<div>
+<div class="font-medium">OpenVPN</div>
+<div class="text-sm text-gray-600 dark:text-gray-400">Most compatible</div>
+</div>
+</label>
+</div>
+</div>
+
+<!-- General Settings -->
+<div class="space-y-4">
+<div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-850 rounded-xl">
+<div>
+<div class="font-medium">Launch on Startup</div>
+<div class="text-sm text-gray-600 dark:text-gray-400">Start app when device boots</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input type="checkbox" class="sr-only peer" id="launchStartup">
+<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+
+<div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-850 rounded-xl">
+<div>
+<div class="font-medium">Notifications</div>
+<div class="text-sm text-gray-600 dark:text-gray-400">Connection status updates</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input type="checkbox" class="sr-only peer" id="notifications" checked>
+<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+
+<button id="protocolSettingsBtn" class="w-full p-4 bg-gray-50 dark:bg-gray-850 rounded-xl text-left hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors">
+<div class="flex items-center justify-between">
+<div>
+<div class="font-medium">Protocol Settings</div>
+<div class="text-sm text-gray-600 dark:text-gray-400">Advanced protocol configuration</div>
+</div>
+<svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+</svg>
+</div>
+</button>
+
+<button class="w-full p-4 bg-gray-50 dark:bg-gray-850 rounded-xl text-left hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors">
+<div class="font-medium">DNS Settings</div>
+<div class="text-sm text-gray-600 dark:text-gray-400">Configure custom DNS servers</div>
+</button>
+
+<button class="w-full p-4 bg-gray-50 dark:bg-gray-850 rounded-xl text-left hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors">
+<div class="font-medium">About</div>
+<div class="text-sm text-gray-600 dark:text-gray-400">Version 2.1.0</div>
+</button>
+</div>
+</div>
+</div>
+
+<!-- Protocol Settings Tab -->
+<div id="protocolTab" class="h-full" style="display: none;">
+<!-- Header -->
+<div class="bg-primary text-white p-4 shadow-lg">
+<div class="flex items-center">
+<button id="protocolBackBtn" class="p-2 hover:bg-white/10 rounded-lg transition-colors mr-3">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+</svg>
+</button>
+<h1 class="text-xl font-bold">Protocol</h1>
+</div>
+</div>
+
+<div class="p-6 space-y-6">
+<!-- Everest Protocol Section -->
+<div>
+<h3 class="text-lg font-medium text-secondary mb-4">Everest Protocol</h3>
+
+<div class="bg-gray-50 dark:bg-gray-850 rounded-xl p-4">
+<div class="grid grid-cols-2 gap-3 mb-4">
+<button class="protocol-btn active bg-primary text-white border-2 border-primary rounded-lg p-3 font-medium transition-all" data-protocol="auto">
+Auto
+</button>
+<button class="protocol-btn bg-gray-100 dark:bg-gray-750 text-gray-700 dark:text-gray-300 border-2 border-transparent rounded-lg p-3 font-medium transition-all" data-protocol="udp">
+UDP
+</button>
+<button class="protocol-btn bg-gray-100 dark:bg-gray-750 text-gray-700 dark:text-gray-300 border-2 border-transparent rounded-lg p-3 font-medium transition-all" data-protocol="tls2">
+TLS-2
+</button>
+<button class="protocol-btn bg-gray-100 dark:bg-gray-750 text-gray-700 dark:text-gray-300 border-2 border-transparent rounded-lg p-3 font-medium transition-all" data-protocol="tls">
+TLS
+</button>
+</div>
+
+<button class="text-gray-500 dark:text-gray-400 text-sm hover:text-primary transition-colors">
+View All Protocols >
+</button>
+</div>
+</div>
+
+<!-- Protocol Settings Section -->
+<div>
+<h3 class="text-lg font-medium text-secondary mb-4">Protocol Settings</h3>
+
+<div class="bg-gray-50 dark:bg-gray-850 rounded-xl p-4">
+<!-- HTTP & TLS Obfuscate Setting -->
+<div class="border-b border-gray-200 dark:border-gray-700 pb-4 mb-4">
+<button id="obfuscateToggle" class="w-full flex items-center justify-between text-left">
+<div>
+<h4 class="font-medium mb-2">HTTP & TLS Obfuscate Setting</h4>
+<p class="text-sm text-gray-600 dark:text-gray-400">
+Add <span class="text-secondary">any domain you can access without a VPN</span> to obfuscate your traffic and improve your protocol TLS and HTTP connection.
+</p>
+</div>
+<svg id="obfuscateChevron" class="w-5 h-5 text-gray-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+</svg>
+</button>
+
+<div id="obfuscateContent" class="mt-4 space-y-3" style="display: none;">
+<div class="flex space-x-3">
+<input
+type="text"
+id="domainInput"
+placeholder="Enter a domain you can access"
+class="flex-1 px-4 py-3 text-base bg-gray-100 dark:bg-gray-700 border-0 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none transition-all"
+>
+<button id="applyDomainBtn" class="px-6 py-3 bg-secondary text-white rounded-lg font-medium hover:bg-secondary/90 transition-colors">
+Apply
+</button>
+</div>
+
+<!-- Domain List -->
+<div id="domainList" class="space-y-2">
+<div class="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+<span class="text-sm">google.com</span>
+<button class="text-danger hover:text-danger/80 text-sm">Remove</button>
+</div>
+<div class="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+<span class="text-sm">cloudflare.com</span>
+<button class="text-danger hover:text-danger/80 text-sm">Remove</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Additional Protocol Settings -->
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<div>
+<div class="font-medium">Port Randomization</div>
+<div class="text-sm text-gray-600 dark:text-gray-400">Use random ports for better security</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input type="checkbox" class="sr-only peer" id="portRandomization" checked>
+<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+
+<div class="flex items-center justify-between">
+<div>
+<div class="font-medium">IPv6 Support</div>
+<div class="text-sm text-gray-600 dark:text-gray-400">Enable IPv6 connectivity</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input type="checkbox" class="sr-only peer" id="ipv6Support">
+<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+
+<div class="flex items-center justify-between">
+<div>
+<div class="font-medium">Fast Connect</div>
+<div class="text-sm text-gray-600 dark:text-gray-400">Skip handshake optimization</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input type="checkbox" class="sr-only peer" id="fastConnect" checked>
+<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Advanced Settings -->
+<div>
+<h3 class="text-lg font-medium text-secondary mb-4">Advanced Settings</h3>
+
+<div class="space-y-3">
+<button class="w-full p-4 bg-gray-50 dark:bg-gray-850 rounded-xl text-left hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors">
+<div class="flex items-center justify-between">
+<div>
+<div class="font-medium">Custom Ports</div>
+<div class="text-sm text-gray-600 dark:text-gray-400">Configure specific port ranges</div>
+</div>
+<svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+</svg>
+</div>
+</button>
+
+<button class="w-full p-4 bg-gray-50 dark:bg-gray-850 rounded-xl text-left hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors">
+<div class="flex items-center justify-between">
+<div>
+<div class="font-medium">Encryption Settings</div>
+<div class="text-sm text-gray-600 dark:text-gray-400">Adjust encryption algorithms</div>
+</div>
+<svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+</svg>
+</div>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+
+<!-- Bottom Navigation -->
+<nav class="bg-white dark:bg-gray-850 border-t border-gray-200 dark:border-gray-700 p-2">
+<div class="flex justify-around">
+<button class="nav-btn active flex flex-col items-center p-3 text-primary" data-tab="home">
+<svg class="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 24 24">
+<path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+</svg>
+<span class="text-xs">Home</span>
+</button>
+<button class="nav-btn flex flex-col items-center p-3 text-gray-400" data-tab="servers">
+<svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path>
+</svg>
+<span class="text-xs">Servers</span>
+</button>
+<button class="nav-btn flex flex-col items-center p-3 text-gray-400" data-tab="stats">
+<svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+</svg>
+<span class="text-xs">Stats</span>
+</button>
+<button class="nav-btn flex flex-col items-center p-3 text-gray-400" data-tab="settings">
+<svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+</svg>
+<span class="text-xs">Settings</span>
+</button>
+</div>
+</nav>
+</div>
+
+<script>
+// Dark mode detection
+if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+document.documentElement.classList.add('dark');
+}
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+if (event.matches) {
+document.documentElement.classList.add('dark');
+} else {
+document.documentElement.classList.remove('dark');
+}
+});
+
+// PWA Service Worker Registration
+if ('serviceWorker' in navigator) {
+window.addEventListener('load', () => {
+navigator.serviceWorker.register('/sw.js')
+.then(registration => console.log('SW registered: ', registration))
+.catch(registrationError => console.log('SW registration failed: ', registrationError));
+});
+}
+
+// App state
+let isConnected = false;
+let isConnecting = false;
+let currentServer = {
+name: 'United States',
+code: 'US',
+ping: '25ms',
+flag: '🇺🇸'
+};
+
+// Servers data
+const servers = [
+{ name: 'United States - New York', code: 'US', ping: '25ms', flag: '🇺🇸', category: 'premium', load: 45 },
+{ name: 'United States - Los Angeles', code: 'US', ping: '32ms', flag: '🇺🇸', category: 'streaming', load: 67 },
+{ name: 'United Kingdom - London', code: 'GB', ping: '18ms', flag: '🇬🇧', category: 'premium', load: 23 },
+{ name: 'Germany - Frankfurt', code: 'DE', ping: '22ms', flag: '🇩🇪', category: 'gaming', load: 34 },
+{ name: 'Japan - Tokyo', code: 'JP', ping: '45ms', flag: '🇯🇵', category: 'gaming', load: 56 },
+{ name: 'Canada - Toronto', code: 'CA', ping: '28ms', flag: '🇨🇦', category: 'streaming', load: 41 },
+{ name: 'Australia - Sydney', code: 'AU', ping: '78ms', flag: '🇦🇺', category: 'premium', load: 29 },
+{ name: 'Singapore', code: 'SG', ping: '52ms', flag: '🇸🇬', category: 'gaming', load: 38 },
+{ name: 'Netherlands - Amsterdam', code: 'NL', ping: '19ms', flag: '🇳🇱', category: 'streaming', load: 52 },
+{ name: 'France - Paris', code: 'FR', ping: '21ms', flag: '🇫🇷', category: 'premium', load: 33 }
+];
+
+// DOM elements
+const loadingScreen = document.getElementById('loadingScreen');
+const app = document.getElementById('app');
+const connectionButton = document.getElementById('connectionButton');
+const connectionStatus = document.getElementById('connectionStatus');
+const connectionRipple = document.getElementById('connectionRipple');
+const connectionStatusText = document.getElementById('connectionStatusText');
+const connectionSubtext = document.getElementById('connectionSubtext');
+const connectionProgress = document.getElementById('connectionProgress');
+const powerIcon = document.getElementById('powerIcon');
+const navButtons = document.querySelectorAll('.nav-btn');
+const tabContents = document.querySelectorAll('[id$="Tab"]');
+const serversList = document.getElementById('serversList');
+const serverSearch = document.getElementById('serverSearch');
+const categoryButtons = document.querySelectorAll('.category-btn');
+const changeServerBtn = document.getElementById('changeServerBtn');
+
+// Initialize app
+function initApp() {
+setTimeout(() => {
+loadingScreen.style.display = 'none';
+app.style.display = 'flex';
+populateServers();
+updateSpeedStats();
+}, 2000);
+}
+
+// Connection toggle
+connectionButton.addEventListener('click', toggleConnection);
+
+function toggleConnection() {
+if (isConnecting) return;
+
+if (isConnected) {
+disconnect();
+} else {
+connect();
+}
+}
+
+function connect() {
+isConnecting = true;
+connectionProgress.style.display = 'block';
+connectionStatusText.textContent = 'Connecting...';
+connectionSubtext.textContent = 'Establishing secure connection';
+
+setTimeout(() => {
+isConnected = true;
+isConnecting = false;
+connectionProgress.style.display = 'none';
+connectionButton.querySelector('.inset-4').classList.add('connected-glow');
+connectionButton.querySelector('.inset-4').classList.remove('connection-glow');
+connectionStatus.className = 'w-3 h-3 rounded-full bg-success';
+connectionRipple.className = 'absolute inset-0 w-3 h-3 rounded-full bg-success opacity-75 ripple';
+connectionRipple.style.display = 'block';
+connectionStatusText.textContent = 'Connected';
+connectionSubtext.textContent = `Connected to ${currentServer.name}`;
+startSpeedSimulation();
+}, 3000);
+}
+
+function disconnect() {
+isConnected = false;
+connectionButton.querySelector('.inset-4').classList.remove('connected-glow');
+connectionButton.querySelector('.inset-4').classList.add('connection-glow');
+connectionStatus.className = 'w-3 h-3 rounded-full bg-danger';
+connectionRipple.style.display = 'none';
+connectionStatusText.textContent = 'Disconnected';
+connectionSubtext.textContent = 'Tap to connect';
+stopSpeedSimulation();
+}
+
+// Speed simulation
+let speedInterval;
+
+function startSpeedSimulation() {
+speedInterval = setInterval(() => {
+const download = (Math.random() * 50 + 10).toFixed(1);
+const upload = (Math.random() * 20 + 5).toFixed(1);
+document.getElementById('downloadSpeed').textContent = `${download} MB/s`;
+document.getElementById('uploadSpeed').textContent = `${upload} MB/s`;
+}, 2000);
+}
+
+function stopSpeedSimulation() {
+if (speedInterval) {
+clearInterval(speedInterval);
+}
+document.getElementById('downloadSpeed').textContent = '0 MB/s';
+document.getElementById('uploadSpeed').textContent = '0 MB/s';
+}
+
+function updateSpeedStats() {
+const now = new Date();
+const todayData = (Math.random() * 5 + 1).toFixed(1);
+const todayHours = Math.floor(Math.random() * 8 + 1);
+const todayMinutes = Math.floor(Math.random() * 60);
+
+document.getElementById('todayData').textContent = `${todayData} GB`;
+document.getElementById('todayTime').textContent = `${todayHours}h ${todayMinutes}m`;
+}
+
+// Navigation
+navButtons.forEach(btn => {
+btn.addEventListener('click', () => {
+const tabName = btn.dataset.tab;
+switchTab(tabName);
+});
+});
+
+function switchTab(tabName) {
+// Update navigation
+navButtons.forEach(btn => {
+btn.classList.remove('active', 'text-primary');
+btn.classList.add('text-gray-400');
+});
+
+const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
+if (activeBtn) {
+activeBtn.classList.add('active', 'text-primary');
+activeBtn.classList.remove('text-gray-400');
+}
+
+// Update tabs
+tabContents.forEach(tab => {
+tab.style.display = 'none';
+});
+
+const targetTab = document.getElementById(`${tabName}Tab`);
+if (targetTab) {
+targetTab.style.display = 'block';
+}
+}
+
+// Server management
+function populateServers() {
+serversList.innerHTML = '';
+
+servers.forEach(server => {
+const serverElement = createServerElement(server);
+serversList.appendChild(serverElement);
+});
+}
+
+function createServerElement(server) {
+const div = document.createElement('div');
+div.className = 'server-card bg-white dark:bg-gray-850 rounded-xl p-4 border border-gray-100 dark:border-gray-700 cursor-pointer';
+
+const loadColor = server.load < 40 ? 'text-success' : server.load < 70 ? 'text-warning' : 'text-danger';
+
+div.innerHTML = `
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-3">
+<div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold">
+${server.code}
+</div>
+<div>
+<h3 class="font-medium">${server.name}</h3>
+<p class="text-sm text-gray-600 dark:text-gray-400">${server.ping} • Load: <span class="${loadColor}">${server.load}%</span></p>
+</div>
+</div>
+<div class="flex items-center space-x-2">
+<div class="w-3 h-3 rounded-full bg-success"></div>
+${server.category === 'premium' ? '<span class="px-2 py-1 bg-primary text-white text-xs rounded-full">Pro</span>' : ''}
+</div>
+</div>
+`;
+
+div.addEventListener('click', () => selectServer(server));
+return div;
+}
+
+function selectServer(server) {
+currentServer = server;
+document.getElementById('currentServerName').textContent = server.name;
+document.getElementById('currentServerPing').textContent = server.ping;
+document.getElementById('currentServerFlag').textContent = server.code;
+
+if (isConnected) {
+connectionSubtext.textContent = `Connected to ${server.name}`;
+}
+
+// Switch back to home tab
+switchTab('home');
+}
+
+// Server search and filtering
+serverSearch.addEventListener('input', filterServers);
+
+categoryButtons.forEach(btn => {
+btn.addEventListener('click', () => {
+// Update active category
+categoryButtons.forEach(b => {
+b.classList.remove('bg-primary', 'text-white');
+b.classList.add('bg-gray-100', 'dark:bg-gray-750', 'text-gray-700', 'dark:text-gray-300');
+});
+
+btn.classList.add('bg-primary', 'text-white');
+btn.classList.remove('bg-gray-100', 'dark:bg-gray-750', 'text-gray-700', 'dark:text-gray-300');
+
+filterServers();
+});
+});
+
+function filterServers() {
+const searchTerm = serverSearch.value.toLowerCase();
+const activeCategory = document.querySelector('.category-btn.bg-primary')?.dataset.category || 'all';
+
+const filteredServers = servers.filter(server => {
+const matchesSearch = server.name.toLowerCase().includes(searchTerm);
+const matchesCategory = activeCategory === 'all' || server.category === activeCategory;
+return matchesSearch && matchesCategory;
+});
+
+serversList.innerHTML = '';
+filteredServers.forEach(server => {
+const serverElement = createServerElement(server);
+serversList.appendChild(serverElement);
+});
+}
+
+// Quick server change
+changeServerBtn.addEventListener('click', () => {
+switchTab('servers');
+});
+
+// Protocol Settings functionality
+const protocolSettingsBtn = document.getElementById('protocolSettingsBtn');
+const protocolBackBtn = document.getElementById('protocolBackBtn');
+const protocolButtons = document.querySelectorAll('.protocol-btn');
+const obfuscateToggle = document.getElementById('obfuscateToggle');
+const obfuscateContent = document.getElementById('obfuscateContent');
+const obfuscateChevron = document.getElementById('obfuscateChevron');
+const domainInput = document.getElementById('domainInput');
+const applyDomainBtn = document.getElementById('applyDomainBtn');
+const domainList = document.getElementById('domainList');
+
+// Navigate to protocol settings
+protocolSettingsBtn.addEventListener('click', () => {
+switchTab('protocol');
+});
+
+// Back button from protocol settings
+protocolBackBtn.addEventListener('click', () => {
+switchTab('settings');
+});
+
+// Protocol selection
+protocolButtons.forEach(btn => {
+btn.addEventListener('click', () => {
+protocolButtons.forEach(b => {
+b.classList.remove('active', 'bg-primary', 'text-white', 'border-primary');
+b.classList.add('bg-gray-100', 'dark:bg-gray-750', 'text-gray-700', 'dark:text-gray-300', 'border-transparent');
+});
+
+btn.classList.add('active', 'bg-primary', 'text-white', 'border-primary');
+btn.classList.remove('bg-gray-100', 'dark:bg-gray-750', 'text-gray-700', 'dark:text-gray-300', 'border-transparent');
+
+// Update protocol in main settings
+const protocol = btn.dataset.protocol;
+console.log('Selected protocol:', protocol);
+});
+});
+
+// Obfuscate settings toggle
+obfuscateToggle.addEventListener('click', () => {
+const isOpen = obfuscateContent.style.display !== 'none';
+
+if (isOpen) {
+obfuscateContent.style.display = 'none';
+obfuscateChevron.style.transform = 'rotate(0deg)';
+} else {
+obfuscateContent.style.display = 'block';
+obfuscateChevron.style.transform = 'rotate(180deg)';
+}
+});
+
+// Add domain functionality
+applyDomainBtn.addEventListener('click', () => {
+const domain = domainInput.value.trim();
+if (domain) {
+addDomain(domain);
+domainInput.value = '';
+}
+});
+
+// Enter key support for domain input
+domainInput.addEventListener('keypress', (e) => {
+if (e.key === 'Enter') {
+applyDomainBtn.click();
+}
+});
+
+function addDomain(domain) {
+const domainElement = document.createElement('div');
+domainElement.className = 'flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-700 rounded-lg';
+domainElement.innerHTML = `
+<span class="text-sm">${domain}</span>
+<button class="text-danger hover:text-danger/80 text-sm remove-domain">Remove</button>
+`;
+
+// Add remove functionality
+domainElement.querySelector('.remove-domain').addEventListener('click', () => {
+domainElement.remove();
+});
+
+domainList.appendChild(domainElement);
+}
+
+// Add remove functionality to existing domains
+document.querySelectorAll('.remove-domain').forEach(btn => {
+btn.addEventListener('click', (e) => {
+e.target.closest('.flex').remove();
+});
+});
+
+// Initialize the app
+initApp();
+</script>
+</body>
+</html>
